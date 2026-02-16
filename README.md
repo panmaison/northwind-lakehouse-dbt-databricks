@@ -64,76 +64,79 @@ abfss://landing@panmaisonadls.dfs.core.windows.net/northwind/Orders/
 - A Databricks **SQL Warehouse** (recommended: separate **dev** and **prod**)
 
 ---
-```md
+
 ## Local setup (dbt-core)
 
 Install dbt adapter:
-
-```bash
 pip install dbt-databricks
 Run in /dbt:
+```bash
 dbt deps
 dbt debug -t dev --profiles-dir .
 dbt build -t dev --select bronze_orders --profiles-dir .
+```
 This repo ships a profiles.yml template that reads connection settings from environment variables.
-Bronze model (example)
+## Bronze model (example)
+
+**What the Bronze layer does**
 
 Bronze reads parquet from the date-partitioned landing folders and adds:
 
-load_date parsed from the path
-source_file for traceability
+- **load_date** parsed from the folder path  
+- **source_file** for traceability  
 
-Example access path:
+**Example access path**
+```bash
 parquet.`abfss://landing@panmaisonadls.dfs.core.windows.net/northwind/Orders/*/Orders`
+```
 
-CI/CD (GitHub Actions)
-CI: Pull Request
+## CI/CD (GitHub Actions)
 
-dbt deps
-dbt compile
-dbt build (changed models only; fallback to Bronze model on first run)
+**CI – Pull Request validation**
 
-CD – Production deployment
-Triggered on push to main:
+- dbt deps  
+- dbt compile  
+- dbt build (changed models only; fallback to Bronze model on first run)
 
-Runs dbt build -t prod using the production SQL Warehouse
+**CD – Production deployment**
 
-GitHub Secrets & Variables
+Triggered on push to **main**
 
-Add Repository Secrets:
+- Runs **dbt build -t prod** using the production SQL Warehouse
+---
+## GitHub Secrets & Variables
 
-DATABRICKS_HOST (e.g., https://dbc-xxxx.cloud.databricks.com)
+**Add Repository Secrets**
 
-DATABRICKS_TOKEN (PAT)
+- **DATABRICKS_HOST** (e.g., https://dbc-xxxx.cloud.databricks.com)  
+- **DATABRICKS_TOKEN** (PAT)  
+- **DATABRICKS_HTTP_PATH_DEV** (SQL Warehouse HTTP path)  
+- **DATABRICKS_HTTP_PATH_PROD** (SQL Warehouse HTTP path)  
 
-DATABRICKS_HTTP_PATH_DEV (SQL Warehouse HTTP path)
+**Add Repository Variables (optional but recommended)**
 
-DATABRICKS_HTTP_PATH_PROD (SQL Warehouse HTTP path)
+- **DBT_CATALOG** (e.g., erp_northwind)  
+- **DBT_SCHEMA_DEV** (e.g., hongwei)  
+- **DBT_SCHEMA_PROD** (e.g., prod)  
 
-Add Repository Variables (optional but recommended):
+---
 
-DBT_CATALOG (e.g., erp_northwind)
+## Notes on cost control
 
-DBT_SCHEMA_DEV (e.g., hongwei)
+**Recommended practices**
 
-DBT_SCHEMA_PROD (e.g., prod)
+- Prefer **SQL Warehouse auto-stop** (10–15 minutes)  
+- Avoid **always-on clusters** for development  
+- Use **incremental models** to prevent full historical scans  
 
-Notes on cost control
+---
 
-Prefer SQL Warehouse auto-stop (10–15 minutes)
+## Roadmap
 
-Avoid always-on clusters for development
+**Next improvements**
 
-Use incremental models to prevent full historical scans
-
-Roadmap
-
- Add Silver models (typed & cleaned)
-
- Add dbt tests (not_null, uniqueness, relationships)
-
- Add dbt docs generation + GitHub Pages publish
-
- Add incremental load strategy per table (snapshot vs delta)
-
- Add lineage diagram (dbt docs)
+- [ ] Add **Silver** models (typed & cleaned)  
+- [ ] Add **dbt tests** (not_null, uniqueness, relationships)  
+- [ ] Add **dbt docs** generation + GitHub Pages publish  
+- [ ] Add incremental load strategy per table (snapshot vs delta)  
+- [ ] Add lineage diagram (dbt docs)
