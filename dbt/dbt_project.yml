@@ -1,0 +1,14 @@
+name: "erp_lakehouse"
+version: "1.0.0"
+config-version: 2
+profile: "erp_lakehouse"
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+
+models:
+  erp_lakehouse:
+    +materialized: table
+    bronze:
+      +schema: bronze
