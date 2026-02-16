@@ -28,8 +28,10 @@ An end-to-end, production-style Lakehouse demo on Azure.
 abfss://landing@panmaisonadls.dfs.core.windows.net/northwind/Orders/
 2026-02-12/Orders/.parquet
 2026-02-13/Orders/.parquet
-## Repository structure
 
+```md
+## Repository structure
+```text
 ├─ dbt/
 │  ├─ dbt_project.yml
 │  ├─ profiles.yml            # template uses env vars (no secrets committed)
@@ -48,7 +50,7 @@ abfss://landing@panmaisonadls.dfs.core.windows.net/northwind/Orders/
 └─ architecture/
    ├─ diagram.png
    └─ decisions.md
-
+```
 
 ---
 
@@ -62,7 +64,7 @@ abfss://landing@panmaisonadls.dfs.core.windows.net/northwind/Orders/
 - A Databricks **SQL Warehouse** (recommended: separate **dev** and **prod**)
 
 ---
-
+```md
 ## Local setup (dbt-core)
 
 Install dbt adapter:
