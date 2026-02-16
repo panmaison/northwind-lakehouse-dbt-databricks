@@ -1,0 +1,48 @@
+name: dbt CI
+
+on:
+  pull_request:
+
+jobs:
+  dbt-ci:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dbt
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dbt
+        run: |
+          pip install --upgrade pip
+          pip install dbt-databricks
+
+      - name: dbt deps
+        run: dbt deps
+
+      - name: dbt compile
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+          DATABRICKS_HTTP_PATH_DEV: ${{ secrets.DATABRICKS_HTTP_PATH_DEV }}
+          DATABRICKS_HTTP_PATH_PROD: ${{ secrets.DATABRICKS_HTTP_PATH_PROD }}
+          DBT_CATALOG: ${{ vars.DBT_CATALOG }}
+          DBT_SCHEMA_DEV: ${{ vars.DBT_SCHEMA_DEV }}
+        run: dbt compile -t dev --profiles-dir .
+
+      - name: dbt build (changed only)
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+          DATABRICKS_HTTP_PATH_DEV: ${{ secrets.DATABRICKS_HTTP_PATH_DEV }}
+          DATABRICKS_HTTP_PATH_PROD: ${{ secrets.DATABRICKS_HTTP_PATH_PROD }}
+          DBT_CATALOG: ${{ vars.DBT_CATALOG }}
+          DBT_SCHEMA_DEV: ${{ vars.DBT_SCHEMA_DEV }}
+        run: |
+          dbt build -t dev --profiles-dir . --select state:modified+ --defer --state ./target || \
+          dbt build -t dev --profiles-dir . --select bronze_orders
