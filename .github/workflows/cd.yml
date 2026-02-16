@@ -1,0 +1,37 @@
+name: dbt CD
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  dbt-prod:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dbt
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dbt
+        run: |
+          pip install --upgrade pip
+          pip install dbt-databricks
+
+      - name: dbt deps
+        run: dbt deps
+
+      - name: dbt build prod
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+          DATABRICKS_HTTP_PATH_DEV: ${{ secrets.DATABRICKS_HTTP_PATH_DEV }}
+          DATABRICKS_HTTP_PATH_PROD: ${{ secrets.DATABRICKS_HTTP_PATH_PROD }}
+          DBT_CATALOG: ${{ vars.DBT_CATALOG }}
+          DBT_SCHEMA_PROD: ${{ vars.DBT_SCHEMA_PROD }}
+        run: dbt build -t prod --profiles-dir .
